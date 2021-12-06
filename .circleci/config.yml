@@ -133,43 +133,32 @@ jobs:
           name: 'Run Unit Tests'
           command: yarn run test --maxWorkers=2
 
-  build-image:
+  build-feature:
     <<: *container_executor
     <<: *working_directory
     steps:
       - checkout
       - setup_remote_docker:
           version: 19.03.13
-      - run:
-          name: docker_build
-          command: |
-            time DOCKER_BUILDKIT=1 docker build -t $DOCKER_USER/nestjs-playground:$CIRCLE_SHA1 .
-            mkdir -p docker-cache
-            docker save -o docker-cache/built-image.tar $DOCKER_USER/nestjs-playground:$CIRCLE_SHA1
-      - save_cache:
-          key: docker-image-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ .Environment.CIRCLE_SHA1 }}
-          paths: 
-            - ~/workspace/docker-cache
+      - run: echo "Deploy feature..."
 
-  deploy-image:
+  build-staging:
     <<: *container_executor
+    <<: *working_directory
     steps:
-      - restore_cache:
-          key: docker-image-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ .Environment.CIRCLE_SHA1 }}
+      - checkout
       - setup_remote_docker:
           version: 19.03.13
-      - run:
-          name: docker_load
-          command: |
-            docker load -i /home/circleci/workspace/docker-cache/built-image.tar
-      - run:
-          name: login to private docker
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-      - run:
-          name: pushing image to private dcoker
-          command: |
-            docker push $DOCKER_USER/nestjs-playground:$CIRCLE_SHA1
+      - run: echo "Deploy staging..."
+
+  build-master:
+    <<: *container_executor
+    <<: *working_directory
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+      - run: echo "Deploy master..."
 
 workflows:
   pipeline:
@@ -193,12 +182,21 @@ workflows:
             - NESTJS_PLAYGROUND
           requires:
             - bundle-dependencies
-      - build-image:
-          <<: *only-master
+      - build-feature:
+          <<: *only-feature
           requires:
             - run-e2e
             - run-unit
             - run-lint
-      - deploy-image:
+      - build-staging:
+          <<: *only-staging
           requires:
-            - build-image
+            - run-e2e
+            - run-unit
+            - run-lint
+      - hold:
+          type: approval
+      - build-master:
+          <<: *only-master
+          requires:
+            - hold
