@@ -5,7 +5,7 @@ executors:
     docker:
       - image: circleci/node:14
 
-.only-prod: &only-prod
+.only-master: &only-master
   filters:
     branches:
       only:
@@ -16,6 +16,12 @@ executors:
     branches:
       only:
         - staging
+
+.only-feature: &only-feature
+  filters:
+    branches:
+      only:
+        - feature/*
 
 .working_directory: &working_directory
   working_directory: ~/workspace
@@ -28,6 +34,7 @@ executors:
     - image: circleci/python:3.8.8-node
 
 jobs:
+
   checkout-code:
     <<: *directory
     docker:
@@ -187,11 +194,11 @@ workflows:
           requires:
             - bundle-dependencies
       - build-image:
-          <<: *only-staging
-#          requires:
-#            - run-e2e
-#            - run-unit
-#            - run-lint
+          <<: *only-master
+          requires:
+            - run-e2e
+            - run-unit
+            - run-lint
       - deploy-image:
           requires:
             - build-image
