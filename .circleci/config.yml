@@ -194,9 +194,6 @@ workflows:
             - run-e2e
             - run-unit
             - run-lint
-      - hold:
-          type: approval
       - build-master:
           <<: *only-master
-          requires:
-            - hold
+          type: approval
