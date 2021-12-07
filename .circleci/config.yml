@@ -1,221 +1,249 @@
 version: 2.1
 
-executors:
-  nodejs:
-    docker:
-      - image: circleci/node:14
+# this allows you to use CircleCI's dynamic configuration feature
+setup: true
 
-.filters-only-master: &filters-only-master
-  filters:
-    branches:
-      only:
-        - master
+# the continuation orb is required in order to use dynamic configuration
+orbs:
+  continuation: circleci/continuation@0.1.2
 
-.filters-only-staging: &filters-only-staging
-  filters:
-    branches:
-      only:
-        - staging
-
-.filters-only-feature: &filters-only-feature
-  filters:
-    branches:
-      only:
-        - feature/*
-
-.directory: &directory
-  working_directory: ~/workspace
-
-.container_executor: &container_executor
-  docker:
-    - image: circleci/python:3.8.8-node
-
+# our defined job, and its steps
 jobs:
-
-  checkout-code:
-    <<: *directory
-    docker:
-      - image: circleci/node:14
+  setup:
+    executor: continuation/default
     steps:
-      - checkout
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - workspace
+      - checkout # checkout code
+      - run: # run a command
+          name: Generate config
+          command: |
+            ./generate-config > generated_config.yml
+      - continuation/continue:
+          configuration_path: generated_config.yml # use newly generated config to continue
 
-  bundle-dependencies:
-    <<: *directory
-    docker:
-      - image: circleci/node:14
-    steps:
-      - attach_workspace:
-          at: ~/
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          command: yarn install
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "yarn.lock" }}
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - workspace
-
-  run-lint:
-    <<: *directory
-    docker:
-      - image: circleci/node:14
-    steps:
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: 'Run yarn lint'
-          command: yarn lint
-
-  run-e2e:
-    <<: *directory
-    docker:
-      - image: circleci/node:14
-      - image: mongo:4.1.6-xenial
-      - image: circleci/postgres:9.6.2-alpine
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-          POSTGRES_DB: circle-test_test
-    steps:
-      - attach_workspace:
-          at: ~/
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "yarn.lock" }}
-      - setup_remote_docker
-      - run:
-          name: Waiting for Mongo
-          command: dockerize -wait tcp://localhost:27017 -timeout 1m
-      - run:
-          name: Waiting for Postgres
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:
-          name: 'Run E2E Tests'
-          command: yarn run test:e2e --maxWorkers=2
-
-  run-unit:
-    <<: *directory
-    docker:
-      - image: circleci/node:14
-      - image: mongo:4.1.6-xenial
-      - image: circleci/postgres:9.6.2-alpine
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-          POSTGRES_DB: circle-test_test
-    steps:
-      - attach_workspace:
-          at: ~/
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "yarn.lock" }}
-      - setup_remote_docker
-      - run:
-          name: Waiting for Mongo
-          command: dockerize -wait tcp://localhost:27017 -timeout 1m
-      - run:
-          name: Waiting for Postgres
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:
-          name: 'Run Unit Tests'
-          command: yarn run test --maxWorkers=2
-
-  build-feature:
-    <<: *container_executor
-    <<: *directory
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-      - run: echo "Deploy feature..."
-
-  build-staging:
-    <<: *container_executor
-    <<: *directory
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-      - run: echo "Deploy staging..."
-
-  build-master:
-    <<: *container_executor
-    <<: *directory
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-      - run: echo "Deploy master..."
-
+# our single workflow, that triggers the setup job defined above
 workflows:
-  dev:
+  setup:
     jobs:
-      - checkout-code
-      - bundle-dependencies:
-          requires:
-            - checkout-code
-      - run-lint:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - run-e2e:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - run-unit:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - build-feature:
-          <<: *filters-only-feature
-          requires:
-            - run-e2e
-            - run-unit
-            - run-lint
+      - setup
 
-  staging:
-    jobs:
-      - checkout-code
-      - bundle-dependencies:
-          requires:
-            - checkout-code
-      - run-lint:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - run-e2e:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - run-unit:
-          context:
-            - NESTJS_PLAYGROUND
-          requires:
-            - bundle-dependencies
-      - build-staging:
-          <<: *filters-only-staging
-          requires:
-            - run-e2e
-            - run-unit
-            - run-lint
-
-  production:
-    jobs:
-      - build-master:
-          <<: *filters-only-master
-          type: approval
+#version: 2.1
+#
+#executors:
+#  nodejs:
+#    docker:
+#      - image: circleci/node:14
+#
+#.filters-only-production: &filters-only-production
+#  filters:
+#    branches:
+#      only:
+#        - master
+#
+#.filters-only-staging: &filters-only-staging
+#  filters:
+#    branches:
+#      only:
+#        - staging
+#
+#.filters-only-dev: &filters-only-dev
+#  filters:
+#    branches:
+#      only:
+#        - feature/*
+#
+#.directory: &directory
+#  working_directory: ~/workspace
+#
+#.container_executor: &container_executor
+#  docker:
+#    - image: circleci/python:3.8.8-node
+#
+#jobs:
+#
+#  checkout-code:
+#    <<: *directory
+#    docker:
+#      - image: circleci/node:14
+#    steps:
+#      - checkout
+#      - persist_to_workspace:
+#          root: ~/
+#          paths:
+#            - workspace
+#
+#  bundle-dependencies:
+#    <<: *directory
+#    docker:
+#      - image: circleci/node:14
+#    steps:
+#      - attach_workspace:
+#          at: ~/
+#      - restore_cache:
+#          keys:
+#            - v1-dependencies-{{ checksum "yarn.lock" }}
+#      - run:
+#          name: Install Dependencies
+#          command: yarn install
+#      - save_cache:
+#          paths:
+#            - node_modules
+#          key: v1-dependencies-{{ checksum "yarn.lock" }}
+#      - persist_to_workspace:
+#          root: ~/
+#          paths:
+#            - workspace
+#
+#  run-lint:
+#    <<: *directory
+#    docker:
+#      - image: circleci/node:14
+#    steps:
+#      - attach_workspace:
+#          at: ~/
+#      - run:
+#          name: 'Run yarn lint'
+#          command: yarn lint
+#
+#  run-e2e:
+#    <<: *directory
+#    docker:
+#      - image: circleci/node:14
+#      - image: mongo:4.1.6-xenial
+#      - image: circleci/postgres:9.6.2-alpine
+#        environment:
+#          POSTGRES_USER: root
+#          POSTGRES_PASSWORD: root
+#          POSTGRES_DB: circle-test_test
+#    steps:
+#      - attach_workspace:
+#          at: ~/
+#      - restore_cache:
+#          keys:
+#            - v1-dependencies-{{ checksum "yarn.lock" }}
+#      - setup_remote_docker
+#      - run:
+#          name: Waiting for Mongo
+#          command: dockerize -wait tcp://localhost:27017 -timeout 1m
+#      - run:
+#          name: Waiting for Postgres
+#          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+#      - run:
+#          name: 'Run E2E Tests'
+#          command: yarn run test:e2e --maxWorkers=2
+#
+#  run-unit:
+#    <<: *directory
+#    docker:
+#      - image: circleci/node:14
+#      - image: mongo:4.1.6-xenial
+#      - image: circleci/postgres:9.6.2-alpine
+#        environment:
+#          POSTGRES_USER: root
+#          POSTGRES_PASSWORD: root
+#          POSTGRES_DB: circle-test_test
+#    steps:
+#      - attach_workspace:
+#          at: ~/
+#      - restore_cache:
+#          keys:
+#            - v1-dependencies-{{ checksum "yarn.lock" }}
+#      - setup_remote_docker
+#      - run:
+#          name: 'Waiting for Mongo'
+#          command: dockerize -wait tcp://localhost:27017 -timeout 1m
+#      - run:
+#          name: 'Waiting for Postgres'
+#          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+#      - run:
+#          name: 'Run Unit Tests'
+#          command: yarn run test --maxWorkers=2
+#
+#  deploy-dev:
+#    <<: *container_executor
+#    <<: *directory
+#    steps:
+#      - checkout
+#      - setup_remote_docker:
+#          version: 19.03.13
+#      - run: echo "Deploy dev..."
+#
+#  deploy-staging:
+#    <<: *container_executor
+#    <<: *directory
+#    steps:
+#      - checkout
+#      - setup_remote_docker:
+#          version: 19.03.13
+#      - run: echo "Deploy staging..."
+#
+#  deploy-production:
+#    <<: *container_executor
+#    <<: *directory
+#    steps:
+#      - checkout
+#      - setup_remote_docker:
+#          version: 19.03.13
+#      - run: echo "Deploy production..."
+#
+#workflows:
+#  dev:
+#    jobs:
+#      - checkout-code
+#      - bundle-dependencies:
+#          requires:
+#            - checkout-code
+#      - run-lint:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - run-e2e:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - run-unit:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - deploy-dev:
+#          <<: *filters-only-dev
+#          requires:
+#            - run-e2e
+#            - run-unit
+#            - run-lint
+#
+#  staging:
+#    jobs:
+#      - checkout-code
+#      - bundle-dependencies:
+#          requires:
+#            - checkout-code
+#      - run-lint:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - run-e2e:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - run-unit:
+#          context:
+#            - NESTJS_PLAYGROUND
+#          requires:
+#            - bundle-dependencies
+#      - deploy-staging:
+#          <<: *filters-only-staging
+#          requires:
+#            - run-e2e
+#            - run-unit
+#            - run-lint
+#
+#  production:
+#    jobs:
+#      - deploy-production:
+#          <<: *filters-only-production
+#          type: approval
