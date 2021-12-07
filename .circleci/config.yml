@@ -5,26 +5,23 @@ executors:
     docker:
       - image: circleci/node:14
 
-.only-master: &only-master
+.filters-only-master: &filters-only-master
   filters:
     branches:
       only:
         - master
 
-.only-staging: &only-staging
+.filters-only-staging: &filters-only-staging
   filters:
     branches:
       only:
         - staging
 
-.only-feature: &only-feature
+.filters-only-feature: &filters-only-feature
   filters:
     branches:
       only:
         - feature/*
-
-.working_directory: &working_directory
-  working_directory: ~/workspace
 
 .directory: &directory
   working_directory: ~/workspace
@@ -135,7 +132,7 @@ jobs:
 
   build-feature:
     <<: *container_executor
-    <<: *working_directory
+    <<: *directory
     steps:
       - checkout
       - setup_remote_docker:
@@ -144,7 +141,7 @@ jobs:
 
   build-staging:
     <<: *container_executor
-    <<: *working_directory
+    <<: *directory
     steps:
       - checkout
       - setup_remote_docker:
@@ -153,7 +150,7 @@ jobs:
 
   build-master:
     <<: *container_executor
-    <<: *working_directory
+    <<: *directory
     steps:
       - checkout
       - setup_remote_docker:
@@ -161,7 +158,7 @@ jobs:
       - run: echo "Deploy master..."
 
 workflows:
-  pipeline:
+  dev:
     jobs:
       - checkout-code
       - bundle-dependencies:
@@ -183,17 +180,42 @@ workflows:
           requires:
             - bundle-dependencies
       - build-feature:
-          <<: *only-feature
+          <<: *filters-only-feature
           requires:
             - run-e2e
             - run-unit
             - run-lint
+
+  staging:
+    jobs:
+      - checkout-code
+      - bundle-dependencies:
+          requires:
+            - checkout-code
+      - run-lint:
+          context:
+            - NESTJS_PLAYGROUND
+          requires:
+            - bundle-dependencies
+      - run-e2e:
+          context:
+            - NESTJS_PLAYGROUND
+          requires:
+            - bundle-dependencies
+      - run-unit:
+          context:
+            - NESTJS_PLAYGROUND
+          requires:
+            - bundle-dependencies
       - build-staging:
-          <<: *only-staging
+          <<: *filters-only-staging
           requires:
             - run-e2e
             - run-unit
             - run-lint
+
+  production:
+    jobs:
       - build-master:
-          <<: *only-master
+          <<: *filters-only-master
           type: approval
