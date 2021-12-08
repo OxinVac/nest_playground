@@ -10,7 +10,13 @@ orbs:
 
 # our defined parameters.
 parameters:
-  trigger:
+  setup_dev:
+    type: boolean
+    default: false
+  setup_staging:
+    type: boolean
+    default: false
+  setup_production:
     type: boolean
     default: false
 
@@ -21,18 +27,48 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run dev env
+          name: Run dev deploy
           command: |
-            echo "Starting..."
+            echo "Starting dev enviroment..."
       - continuation/continue:
-          configuration_path: .circleci/env/dev_config.yml
+          configuration_path: .circleci/env/dev/config.yml
+
+  setup_staging_env:
+    executor: continuation/default
+    steps:
+      - checkout
+      - run:
+          name: Run staging deploy
+          command: |
+            echo "Starting staging enviroment..."
+      - continuation/continue:
+          configuration_path: .circleci/env/staging/config.yml
+
+  setup_production_env:
+    executor: continuation/default
+    steps:
+      - checkout
+      - run:
+          name: Run production deploy
+          command: |
+            echo "Starting production enviroment..."
+      - continuation/continue:
+          configuration_path: .circleci/env/production/config.yml
 
 workflows:
   version: 2
-  ci_setup:
-    when: << pipeline.parameters.trigger >>
+  setup_dev:
+    when: << pipeline.parameters.setup_dev >>
     jobs:
       - setup_dev_env
+  setup_staging:
+    when: << pipeline.parameters.setup_staging >>
+    jobs:
+      - setup_staging_env
+  setup_production:
+    when: << pipeline.parameters.setup_production >>
+    jobs:
+      - setup_production_env
 
 #version: 2.1
 #

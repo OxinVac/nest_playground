@@ -1,0 +1,17 @@
+version: 2.1
+
+parameters:
+  trigger:
+    type: boolean
+    default: false
+
+jobs:
+  trigger-workflows:
+    steps:
+      - run: echo "This is staging deploy"
+
+workflows:
+  version: 2
+  dev-deploy:
+    jobs:
+      - trigger-workflows

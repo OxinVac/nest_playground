@@ -8,10 +8,10 @@ parameters:
 jobs:
   trigger-workflows:
     steps:
-      - run: echo "$(pwd) , << pipeline.parameters.trigger >>"
+      - run: echo "This is staging deploy"
 
 workflows:
   version: 2
-  dev:
+  staging-deploy:
     jobs:
       - trigger-workflows

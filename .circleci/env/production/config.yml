@@ -1,0 +1,17 @@
+version: 2.1
+
+parameters:
+  trigger:
+    type: boolean
+    default: false
+
+jobs:
+  trigger-workflows:
+    steps:
+      - run: echo "This is production deploy"
+
+workflows:
+  version: 2
+  production-deploy:
+    jobs:
+      - trigger-workflows
