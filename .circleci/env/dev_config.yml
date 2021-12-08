@@ -1,16 +1,15 @@
 version: 2.1
 
+parameters:
+  trigger:
+    type: boolean
+    default: false
+
 jobs:
   trigger-workflows:
     executor: python
     steps:
-      - checkout_folder:
-          folder: .circleci/
-      - install_jack
-      - run:
-          name: Trigger workflows
-          working_directory: .circleci
-          command: jack ios ci trigger workflow dependencies.json config.yml
+      - run: echo "$(pwd) , << pipeline.parameters.trigger >>"
 
 workflows:
   version: 2
