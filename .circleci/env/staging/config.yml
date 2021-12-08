@@ -5,8 +5,14 @@ parameters:
     type: boolean
     default: false
 
+executors:
+  nodejs:
+    docker:
+      - image: circleci/node:14
+
 jobs:
   trigger-workflows:
+    executor: nodejs
     steps:
       - run: echo "This is staging deploy"
 
