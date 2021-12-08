@@ -1,7 +1,13 @@
 version: 2.1
 
 parameters:
-  trigger:
+  setup_dev:
+    type: boolean
+    default: false
+  setup_staging:
+    type: boolean
+    default: false
+  setup_production:
     type: boolean
     default: false
 
