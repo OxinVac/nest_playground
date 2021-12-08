@@ -25,7 +25,7 @@ jobs:
           command: |
             echo "Starting..."
       - continuation/continue:
-          configuration_path: dev_config.yml
+          configuration_path: env/dev_config.yml
 
 workflows:
   version: 2
