@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Run deploy
           command: |
-            echo "Start creating enviroment... << pipeline.parameters.env >>"
+            echo "Start creating enviroment [ << pipeline.parameters.env >> ]"
       - continuation/continue:
           configuration_path: .circleci/env/<< pipeline.parameters.env >>/config.yml
 

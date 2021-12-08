@@ -15,7 +15,7 @@ jobs:
   trigger-workflows:
     executor: nodejs
     steps:
-      - run: echo "This is staging deploy"
+      - run: echo "This is dev deploy"
 
 workflows:
   version: 2
