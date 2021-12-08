@@ -7,7 +7,6 @@ parameters:
 
 jobs:
   trigger-workflows:
-    executor: python
     steps:
       - run: echo "$(pwd) , << pipeline.parameters.trigger >>"
 
