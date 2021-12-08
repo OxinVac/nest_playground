@@ -1,15 +1,10 @@
 version: 2.1
 
 parameters:
-  setup_dev:
-    type: boolean
-    default: false
-  setup_staging:
-    type: boolean
-    default: false
-  setup_production:
-    type: boolean
-    default: false
+  env:
+    default: "dev"
+    type: enum
+    enum: ["dev", "staging", "production"]
 
 executors:
   nodejs:

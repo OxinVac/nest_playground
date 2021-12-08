@@ -10,65 +10,29 @@ orbs:
 
 # our defined parameters.
 parameters:
-  setup_dev:
-    type: boolean
-    default: false
-  setup_staging:
-    type: boolean
-    default: false
-  setup_production:
-    type: boolean
-    default: false
+  env:
+    default: "dev"
+    type: enum
+    enum: ["dev", "staging", "production"]
 
 # our defined job, and its steps.
 jobs:
-  setup_dev_env:
+  setup_env:
     executor: continuation/default
     steps:
       - checkout
       - run:
-          name: Run dev deploy
+          name: Run deploy
           command: |
-            echo "Starting dev enviroment..."
+            echo "Start creating enviroment... << pipeline.parameters.env >>"
       - continuation/continue:
-          configuration_path: .circleci/env/dev/config.yml
-
-  setup_staging_env:
-    executor: continuation/default
-    steps:
-      - checkout
-      - run:
-          name: Run staging deploy
-          command: |
-            echo "Starting staging enviroment..."
-      - continuation/continue:
-          configuration_path: .circleci/env/staging/config.yml
-
-  setup_production_env:
-    executor: continuation/default
-    steps:
-      - checkout
-      - run:
-          name: Run production deploy
-          command: |
-            echo "Starting production enviroment..."
-      - continuation/continue:
-          configuration_path: .circleci/env/production/config.yml
+          configuration_path: .circleci/env/<< pipeline.parameters.env >>/config.yml
 
 workflows:
   version: 2
-  setup_dev:
-    when: << pipeline.parameters.setup_dev >>
+  setup:
     jobs:
-      - setup_dev_env
-  setup_staging:
-    when: << pipeline.parameters.setup_staging >>
-    jobs:
-      - setup_staging_env
-  setup_production:
-    when: << pipeline.parameters.setup_production >>
-    jobs:
-      - setup_production_env
+      - setup_env
 
 #version: 2.1
 #
