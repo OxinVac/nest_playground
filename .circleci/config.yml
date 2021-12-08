@@ -7,24 +7,31 @@ setup: true
 orbs:
   continuation: circleci/continuation@0.1.2
 
-# our defined job, and its steps
+# our defined parameters.
+parameters:
+  trigger:
+    type: boolean
+    default: false
+
+# our defined job, and its steps.
 jobs:
-  setup:
+  setup_dev_env:
     executor: continuation/default
     steps:
-      - checkout # checkout code
-      - run: # run a command
-          name: Generate config
+      - checkout
+      - run:
+          name: Run dev env
           command: |
-            ./generate-config > generated_config.yml
+            echo "Starting..."
       - continuation/continue:
-          configuration_path: generated_config.yml # use newly generated config to continue
+          configuration_path: dev_config.yml
 
-# our single workflow, that triggers the setup job defined above
 workflows:
-  setup:
+  version: 2
+  ci_setup:
+    when: << pipeline.parameters.trigger >>
     jobs:
-      - setup
+      - setup_dev_env
 
 #version: 2.1
 #
@@ -49,7 +56,7 @@ workflows:
 #  filters:
 #    branches:
 #      only:
-#        - feature/*
+#        - /feature\/.*/
 #
 #.directory: &directory
 #  working_directory: ~/workspace

@@ -1,0 +1,19 @@
+version: 2.1
+
+jobs:
+  trigger-workflows:
+    executor: python
+    steps:
+      - checkout_folder:
+          folder: .circleci/
+      - install_jack
+      - run:
+          name: Trigger workflows
+          working_directory: .circleci
+          command: jack ios ci trigger workflow dependencies.json config.yml
+
+workflows:
+  version: 2
+  dev:
+    jobs:
+      - trigger-workflows
