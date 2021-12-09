@@ -16,16 +16,16 @@ jobs:
     executor: nodejs
     steps:
       - run:
-        - name: "This is DEV deploy"
-        - command: |
+          name: "This is DEV deploy"
+          command: |
             echo "This is first command"
       - run:
-        - name: "Display parameters"
-        - command: |
-            echo "This is env value: << pipeline.parameters.env >>"
+          name: "Display parameters"
+          command: |
+            echo "This is env value << pipeline.parameters.env >>"
       - run:
-        - name: "Display context"
-        - command: |
+          name: "Display context"
+          command: |
             echo $DOMAIN
 
 workflows:
