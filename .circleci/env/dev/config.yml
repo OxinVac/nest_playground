@@ -12,13 +12,18 @@ executors:
       - image: circleci/node:14
 
 jobs:
-  trigger-workflows:
+  trigger-workflow:
     executor: nodejs
     steps:
-      - run: echo "This is dev deploy"
+      - run:
+        - name: "This is DEV deploy"
+        - command: |
+            print "This is first command"
 
 workflows:
   version: 2
   dev-deploy:
     jobs:
-      - trigger-workflows
+      - trigger-workflow:
+          context:
+            - DEV

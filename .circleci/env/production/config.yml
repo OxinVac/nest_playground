@@ -12,13 +12,18 @@ executors:
       - image: circleci/node:14
 
 jobs:
-  trigger-workflows:
+  trigger-workflow:
     executor: nodejs
     steps:
-      - run: echo "This is production deploy"
+      - run:
+        - name: "This is PRODUCTION deploy"
+        - command: |
+            print "This is first command"
 
 workflows:
   version: 2
   production-deploy:
     jobs:
-      - trigger-workflows
+      - trigger-workflow:
+          context:
+            - PRODUCTION

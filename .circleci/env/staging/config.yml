@@ -15,10 +15,15 @@ jobs:
   trigger-workflows:
     executor: nodejs
     steps:
-      - run: echo "This is staging deploy"
+      - run:
+        - name: "This is STAGING deploy"
+        - command: |
+            print "This is first command"
 
 workflows:
   version: 2
   staging-deploy:
     jobs:
-      - trigger-workflows
+      - trigger-workflow:
+          context:
+            - STAGING
