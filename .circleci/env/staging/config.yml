@@ -12,7 +12,7 @@ executors:
       - image: circleci/node:14
 
 jobs:
-  trigger-workflows:
+  trigger-workflow:
     executor: nodejs
     steps:
       - run:
