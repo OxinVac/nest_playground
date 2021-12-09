@@ -18,15 +18,15 @@ jobs:
       - run:
         - name: "This is DEV deploy"
         - command: |
-            print "This is first command"
+            echo "This is first command"
       - run:
         - name: "Display parameters"
         - command: |
-            print "This is env value: << pipeline.parameters.env >>"
+            echo "This is env value: << pipeline.parameters.env >>"
       - run:
         - name: "Display context"
         - command: |
-            print $DOMAIN
+            echo $DOMAIN
 
 workflows:
   version: 2
