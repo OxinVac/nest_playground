@@ -10,27 +10,35 @@ orbs:
 
 # our defined parameters.
 parameters:
-  env:
-    default: "dev"
-    type: enum
-    enum: ["dev", "staging", "production"]
+  deploy:
+    default: "staging"
+    type: string
+
+commands:
+  check-if-deploy-exist:
+    steps:
+      - run:
+          name: check if deploy exist
+          command: |
+            [ ! -d ".circleci/deploy/<< pipeline.parameters.deploy >>/" ] && circleci step halt
 
 # our defined job, and its steps.
 jobs:
-  setup_env:
+  setup_deploy:
     executor: continuation/default
     steps:
       - checkout
       - run:
           name: Run deploy
           command: |
-            echo "Start creating enviroment [ << pipeline.parameters.env >> ]"
+            echo "Start creating deploy [ << pipeline.parameters.deploy >> ]"
+      - check-if-deploy-exist
       - continuation/continue:
-          configuration_path: .circleci/env/<< pipeline.parameters.env >>/config.yml
+          configuration_path: .circleci/deploy/<< pipeline.parameters.deploy >>/config.yml
 
 # our workflows.
 workflows:
   version: 2
   setup:
     jobs:
-      - setup_env
+      - setup_deploy
