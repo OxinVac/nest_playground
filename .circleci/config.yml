@@ -18,11 +18,11 @@ commands:
   check-if-deploy-exist:
     steps:
       - run:
-          name: check if deploy exist
+          name: Check if deploy directory exist and has files
           command: |
-            [ ! -d ".circleci/deploy/<< pipeline.parameters.deploy >>" ] && 
-            echo "Directory for: [ << pipeline.parameters.deploy >> ] not exist" || 
-            echo "Directory for: [ << pipeline.parameters.deploy >> ] exist"
+            [ "$(ls -A .circleci/deploy/<< pipeline.parameters.deploy >>)" ] && 
+            circleci step halt || 
+            echo "OK"
 
 # our defined job, and its steps.
 jobs:
