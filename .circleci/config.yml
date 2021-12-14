@@ -21,8 +21,8 @@ commands:
           name: Check if deploy directory exist and has files
           command: |
             [ "$(ls -A .circleci/deploy/<< pipeline.parameters.deploy >>)" ] && 
-            circleci step halt || 
-            echo "OK"
+            echo "OK" ||
+            circleci step halt
 
 # our defined job, and its steps.
 jobs:
