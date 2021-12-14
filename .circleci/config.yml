@@ -33,7 +33,7 @@ jobs:
       - check-deploy
       - continuation/continue:
           configuration_path: .circleci/deploy/<< pipeline.parameters.deploy >>/config.yml
-          parameters: .circleci/deploy/<< pipeline.parameters.deploy >>/param.json
+          parameters: .circleci/deploy/<< pipeline.parameters.deploy >>/params.json
 
 # our workflows.
 workflows:
