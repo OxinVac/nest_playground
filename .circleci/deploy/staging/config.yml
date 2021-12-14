@@ -3,8 +3,10 @@ version: 2.1
 parameters:
   deploy:
     type: string
+    default: "staging"
   test:
     type: string
+    default: ""
 
 executors:
   nodejs:
