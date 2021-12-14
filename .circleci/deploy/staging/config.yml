@@ -25,7 +25,7 @@ jobs:
           name: "Display parameters"
           command: |
             echo "This is deploy value << pipeline.parameters.deploy >>"
-            echo "This is test value << pipeline.parameters.test >>"
+            echo "This is node-version value << pipeline.parameters.node-version >>"
       - run:
           name: "Display context"
           command: |
