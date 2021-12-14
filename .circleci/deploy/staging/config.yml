@@ -1,10 +1,8 @@
 version: 2.1
 
 parameters:
-  env:
-    default: "dev"
-    type: enum
-    enum: ["dev", "staging", "production"]
+  deploy:
+  test:
 
 executors:
   nodejs:
@@ -12,7 +10,7 @@ executors:
       - image: circleci/node:14
 
 jobs:
-  trigger-workflow:
+  trigger-jobs:
     executor: nodejs
     steps:
       - run:
@@ -22,7 +20,8 @@ jobs:
       - run:
           name: "Display parameters"
           command: |
-            echo "This is env value << pipeline.parameters.env >>"
+            echo "This is deploy value << pipeline.parameters.deploy >>"
+            echo "This is test value << pipeline.parameters.test >>"
       - run:
           name: "Display context"
           command: |
@@ -32,6 +31,6 @@ workflows:
   version: 2
   staging-deploy:
     jobs:
-      - trigger-workflow:
+      - trigger-jobs:
           context:
             - STAGING
