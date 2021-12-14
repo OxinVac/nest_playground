@@ -26,7 +26,7 @@ commands:
 
 # our defined job, and its steps.
 jobs:
-  setup_deploy:
+  deploy:
     executor: continuation/default
     steps:
       - checkout
@@ -39,4 +39,4 @@ workflows:
   version: 2
   setup:
     jobs:
-      - setup_deploy
+      - deploy
