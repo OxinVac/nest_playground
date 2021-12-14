@@ -4,18 +4,18 @@ parameters:
   deploy:
     type: string
     default: "staging"
-  test:
+  node-version:
     type: string
-    default: ""
+    default: "14"
 
 executors:
-  nodejs:
+  node-js:
     docker:
-      - image: circleci/node:14
+      - image: circleci/node:<< pipeline.parameters.node-version >>
 
 jobs:
   trigger-jobs:
-    executor: nodejs
+    executor: node-js
     steps:
       - run:
           name: "This is PRODUCTION deploy"
