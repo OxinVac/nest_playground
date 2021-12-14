@@ -15,10 +15,10 @@ parameters:
     type: string
 
 commands:
-  check-if-deploy-exist:
+  check-deploy:
     steps:
       - run:
-          name: Check if deploy directory exist and has files
+          name: Check deploy structure.
           command: |
             [ "$(ls -A .circleci/deploy/<< pipeline.parameters.deploy >>)" ] && 
             echo "OK" ||
@@ -30,11 +30,7 @@ jobs:
     executor: continuation/default
     steps:
       - checkout
-      - run:
-          name: Run deploy
-          command: |
-            echo "Start creating deploy [ << pipeline.parameters.deploy >> ]"
-      - check-if-deploy-exist
+      - check-deploy
       - continuation/continue:
           configuration_path: .circleci/deploy/<< pipeline.parameters.deploy >>/config.yml
 
