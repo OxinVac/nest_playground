@@ -20,7 +20,9 @@ commands:
       - run:
           name: check if deploy exist
           command: |
-            [ ! -d ".circleci/deploy/<< pipeline.parameters.deploy >>/" ] && circleci step halt
+            [ ! -d ".circleci/deploy/<< pipeline.parameters.deploy >>" ] && 
+            echo "deploy directory for: [ << pipeline.parameters.deploy >> ] not exist" || 
+            echo "deploy directory for: [ << pipeline.parameters.deploy >> ] exist"
 
 # our defined job, and its steps.
 jobs:
